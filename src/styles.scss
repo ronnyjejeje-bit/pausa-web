@@ -1,1 +1,67 @@
-/* You can add global styles to this file, and also import other style files */
+@use './styles/components';
+:root {
+  // Color: base cálida, primario bosque, acento terracota
+  --color-bg: #f7f3ec;
+  --color-surface: #ffffff;
+  --color-surface-alt: #efe8dc;
+  --color-ink: #1f2a24;
+  --color-ink-soft: #5b655e;
+  --color-border: #e2dacb;
+
+  --color-primary: #2f5d4a;
+  --color-primary-hover: #254b3b;
+  --color-primary-contrast: #ffffff;
+  --color-accent: #c8643b;
+  --color-star: #d9a21b;
+  --color-danger: #b3372b;
+
+  // Tipografía
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: clamp(1.5rem, 1.2rem + 1.2vw, 2rem);
+  --text-2xl: clamp(2rem, 1.4rem + 2.6vw, 3.5rem);
+
+  // Espaciado (escala de 4px)
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 5rem;
+
+  // Forma y elevación
+  --radius-sm: 0.5rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.5rem;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgb(31 42 36 / 8%);
+  --shadow-md: 0 6px 20px rgb(31 42 36 / 10%);
+  --shadow-lg: 0 16px 40px rgb(31 42 36 / 14%);
+
+  // Movimiento
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+
+  // Layout
+  --container-max: 1280px;
+  --header-height: 4.5rem;
+}
+// Breakpoints mobile-first
+$bp-sm: 600px;
+$bp-md: 900px;
+$bp-lg: 1200px;
+
+@mixin up($bp) {
+  @media (min-width: $bp) {
+    @content;
+  }
+}
