@@ -79,7 +79,12 @@ import { ToastService } from '../../shared/ui/toast.service';
     <section class="container block">
       <div class="cta">
         <div><h2>¿Tienes un espacio que merece visitas?</h2><p>Publica tu alojamiento y recibe viajeros que cuidan tu casa.</p></div>
-        <button type="button" class="btn btn--lg cta-btn" (click)="toast.soon()">Ofrece tu espacio</button>
+        <button
+  type="button"
+  class="btn btn--lg cta-btn"
+  (click)="toast.soon()
+  "aria-label="Conoce cuándo estará disponible la opción para ofrecer tu alojamiento">Ofrece tu espacio
+  </button>
       </div>
     </section>
   `,
