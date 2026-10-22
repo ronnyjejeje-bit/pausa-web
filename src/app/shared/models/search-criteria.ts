@@ -36,20 +36,33 @@ const num = (v: string | null): number | null => {
 };
 
 /** Los filtros viven en la URL: se puede compartir y funciona el botón "atrás". */
+
 export function criteriaFromParams(p: ParamMap): SearchCriteria {
   const guests = num(p.get('huespedes'));
+  let priceMin = num(p.get('min'));
+  let priceMax = num(p.get('max'));
+
+  // Evitar rangos de precios contradictorios en la URL.
+  if (priceMin !== null && priceMax !== null && priceMin > priceMax) {
+    priceMin = null;
+    priceMax = null;
+  }
+
   return {
     destination: (p.get('destino') ?? '').trim(),
     checkIn: asIso(p.get('entrada')),
     checkOut: asIso(p.get('salida')),
-    guests: guests && guests >= 1 ? Math.floor(guests) : 1,
-    priceMin: num(p.get('min')),
-    priceMax: num(p.get('max')),
-    types: list(p.get('tipos')).filter((t): t is PropertyType => (PROPERTY_TYPES as string[]).includes(t)),
+    guests: guests !== null && guests >= 1 ? Math.floor(guests) : 1,
+    priceMin,
+    priceMax,
+    types: list(p.get('tipos')).filter(
+      (t): t is PropertyType => (PROPERTY_TYPES as string[]).includes(t),
+    ),
     amenities: list(p.get('servicios')),
     sort: SORT_OPTIONS.find((o) => o.value === p.get('orden'))?.value ?? 'recommended',
   };
 }
+
 
 export function criteriaToParams(c: SearchCriteria): Params {
   const q: Params = {};
