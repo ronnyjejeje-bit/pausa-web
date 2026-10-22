@@ -89,12 +89,46 @@ export class FilterPanel {
   protected readonly types = PROPERTY_TYPES;
   protected readonly labels = PROPERTY_TYPE_LABELS;
   protected readonly amenities = AMENITIES;
-
   protected onPrice(key: 'priceMin' | 'priceMax', e: Event): void {
-    const raw = (e.target as HTMLInputElement).value;
-    const value = raw === '' ? null : Math.max(0, Number(raw));
+    const input = e.target as HTMLInputElement;
+    const raw = input.value.trim();
+
+    if (raw === '') {
+      this.patch.emit(key === 'priceMin' ? { priceMin: null } : { priceMax: null });
+      return;
+    }
+
+    const value = Number(raw);
+
+    if (!Number.isFinite(value) || value < 0) {
+      input.value = '';
+      return;
+    }
+
+    const criteria = this.criteria();
+    const otherValue = key === 'priceMin' ? criteria.priceMax : criteria.priceMin;
+
+    if (otherValue !== null) {
+      const invalidRange = key === 'priceMin'
+        ? value > otherValue
+        : value < otherValue;
+
+      if (invalidRange) {
+        input.setCustomValidity(
+          key === 'priceMin'
+            ? 'El precio mínimo no puede superar el máximo.'
+            : 'El precio máximo no puede ser menor que el mínimo.',
+        );
+        input.reportValidity();
+        input.setCustomValidity('');
+        input.value = String(key === 'priceMin' ? criteria.priceMin ?? '' : criteria.priceMax ?? '');
+        return;
+      }
+    }
+
     this.patch.emit(key === 'priceMin' ? { priceMin: value } : { priceMax: value });
   }
+
   protected toggleType(t: PropertyType): void {
     const cur = this.criteria().types;
     this.patch.emit({ types: cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t] });
