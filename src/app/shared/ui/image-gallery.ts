@@ -6,16 +6,18 @@ import { Icon } from './icon';
   imports: [Icon],
   host: { '(document:keydown)': 'onKey($event)' },
   template: `
-    <div class="grid">
+        <div class="grid" [class.single]="images().length === 1">
       @for (src of shown(); track src; let i = $index) {
         <button type="button" class="cell" [class.main]="i === 0" (click)="show(i)"
           [attr.aria-label]="'Ver foto ' + (i + 1) + ' de ' + title()">
           <img [src]="src" [alt]="title() + ', foto ' + (i + 1)" [attr.loading]="i === 0 ? 'eager' : 'lazy'" (error)="hide($event)" />
         </button>
       }
-      <button type="button" class="btn btn--ghost all" (click)="show(0)">
-        <pausa-icon name="grid" /> Ver las {{ images().length }} fotos
-      </button>
+            @if (images().length > 1) {
+        <button type="button" class="btn btn--ghost all" (click)="show(0)">
+          <pausa-icon name="grid" /> Ver las {{ images().length }} fotos
+        </button>
+      }
     </div>
 
     @if (open()) {
@@ -50,6 +52,8 @@ import { Icon } from './icon';
       .grid { display: grid; height: 28rem; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 0.5rem; }
       .cell:not(.main) { display: block; }
       .cell.main { grid-row: span 2; }
+            .grid.single { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+      .grid.single .cell.main { grid-row: auto; }
     }
     @media (max-width: 599px) { .lightbox { grid-template-columns: 1fr; } .nav { display: none; } }
   `,
