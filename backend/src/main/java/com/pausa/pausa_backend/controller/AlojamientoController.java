@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/alojamientos")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200") // Permite la conexión desde Angular
+
 public class AlojamientoController {
 
     private final AlojamientoService alojamientoService;
