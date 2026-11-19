@@ -1,0 +1,37 @@
+name: 🐛 Reporte de Error (Bug)
+description: Reporta un fallo técnico, error en el pipeline CI/CD o comportamiento inesperado en Pausa.
+title: "[BUG]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: Gracias por reportar este incidente. Completa los campos para mantener la trazabilidad del equipo.
+  - type: dropdown
+    id: modulo
+    attributes:
+      label: Módulo afectado
+      options:
+        - Frontend (Angular)
+        - Backend (Spring Boot)
+        - Base de Datos (PostgreSQL / Neon)
+        - CI/CD & Infraestructura (GitHub Actions)
+    validations:
+      required: true
+  - type: dropdown
+    id: severidad
+    attributes:
+      label: Severidad
+      options:
+        - Crítica (Bloquea despliegue o caída total)
+        - Alta (Funcionalidad principal afectada)
+        - Media (Fallo parcial con alternativa)
+        - Baja (Detalle visual o menor)
+    validations:
+      required: true
+  - type: textarea
+    id: descripcion
+    attributes:
+      label: Descripción y pasos para reproducir
+      placeholder: Describe qué ocurrió, qué esperabas que pasara y los pasos para reproducirlo...
+    validations:
+      required: true

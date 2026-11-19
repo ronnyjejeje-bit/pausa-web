@@ -1,0 +1,22 @@
+name: ✨ Nueva Funcionalidad / Mejora
+description: Propón una mejora técnica, nueva vista o actualización de DevSecOps para Pausa.
+title: "[FEAT]: "
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área del proyecto
+      options:
+        - Frontend (Angular)
+        - Backend (Spring Boot)
+        - DevOps / Seguridad
+    validations:
+      required: true
+  - type: textarea
+    id: detalle
+    attributes:
+      label: Descripción y criterios de aceptación
+      placeholder: Explica el objetivo de la mejora y cómo validar que quedó lista...
+    validations:
+      required: true
