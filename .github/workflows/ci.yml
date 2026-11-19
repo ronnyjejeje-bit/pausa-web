@@ -43,8 +43,10 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: 3. Dar permisos de ejecución y compilar con Maven
+      - name: 3. Compilar y verificar con Maven
         working-directory: ./backend
-        run: |
-          chmod +x mvnw
-          ./mvnw clean verify -Dspring.profiles.active=test || ./mvnw clean package -DskipTests
+        env:
+          DB_URL: jdbc:postgresql://localhost:5432/testdb
+          DB_USERNAME: test
+          DB_PASSWORD: test
+        run: mvn clean verify -Dspring.profiles.active=test || mvn clean package -DskipTests
