@@ -1,7 +1,9 @@
+
 package com.pausa.pausa_backend.service;
 
 import com.pausa.pausa_backend.dto.AlojamientoRequestDto;
 import com.pausa.pausa_backend.dto.AlojamientoResponseDto;
+import com.pausa.pausa_backend.exception.RecursoNoEncontradoException;
 import com.pausa.pausa_backend.model.Alojamiento;
 import com.pausa.pausa_backend.repository.AlojamientoRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +30,9 @@ public class AlojamientoService {
     @Transactional(readOnly = true)
     public AlojamientoResponseDto obtenerPorId(Long id) {
         Alojamiento alojamiento = alojamientoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Alojamiento no encontrado con id: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Alojamiento no encontrado con id: " + id
+                ));
         return mapToResponseDto(alojamiento);
     }
 
@@ -41,9 +45,12 @@ public class AlojamientoService {
     }
 
     @Transactional(readOnly = true)
-    public List<AlojamientoResponseDto> filtrarPorPrecioYCapacidad(BigDecimal precioMax, Integer capacidadMin) {
+    public List<AlojamientoResponseDto> filtrarPorPrecioYCapacidad(
+            BigDecimal precioMax, Integer capacidadMin) {
         return alojamientoRepository
-                .findByPrecioPorNocheLessThanEqualAndCapacidadMaximaGreaterThanEqualAndActivoTrue(precioMax, capacidadMin)
+                .findByPrecioPorNocheLessThanEqualAndCapacidadMaximaGreaterThanEqualAndActivoTrue(
+                        precioMax, capacidadMin
+                )
                 .stream()
                 .map(this::mapToResponseDto)
                 .toList();
