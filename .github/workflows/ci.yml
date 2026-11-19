@@ -24,7 +24,7 @@ jobs:
         run: npm ci
 
       - name: 4. Ejecutar pruebas unitarias Angular
-        run: npx ng test --no-watch --browsers=ChromeHeadless
+        run: npx ng test --no-watch
 
       - name: 5. Compilar Frontend (Production Build)
         run: npm run build -- --configuration production
@@ -43,6 +43,8 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: 3. Compilar y ejecutar tests Maven
+      - name: 3. Dar permisos de ejecución y compilar con Maven
         working-directory: ./backend
-        run: ./mvnw clean verify -Dspring.profiles.active=test || ./mvnw clean package -DskipTests
+        run: |
+          chmod +x mvnw
+          ./mvnw clean verify -Dspring.profiles.active=test || ./mvnw clean package -DskipTests
