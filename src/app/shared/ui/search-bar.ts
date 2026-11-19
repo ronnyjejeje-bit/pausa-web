@@ -95,25 +95,50 @@ export class SearchBar {
     this.error.set('');
   }
   protected onCheckOut(e: Event): void {
-    this.checkOut.set((e.target as HTMLInputElement).value || null);
-    this.error.set('');
+  const value = (e.target as HTMLInputElement).value || null;
+  const checkIn = this.checkIn();
+
+  if (value && checkIn && value <= checkIn) {
+    this.checkOut.set(null);
+    this.error.set('La salida debe ser posterior a la llegada.');
+    return;
   }
-  protected submit(e: Event): void {
-    e.preventDefault();
-    if (this.checkIn() && !this.checkOut()) {
-      this.error.set('Elige también la fecha de salida para buscar por fechas.');
-      return;
-    }
-    if (!this.checkIn() && this.checkOut()) {
-      this.error.set('Elige también la fecha de llegada.');
-      return;
-    }
-    this.error.set('');
-    this.search.emit({
-      destination: this.destination().trim(),
-      checkIn: this.checkIn(),
-      checkOut: this.checkOut(),
-      guests: this.guests(),
-    });
+
+  this.checkOut.set(value);
+  this.error.set('');
+}
+protected submit(e: Event): void {
+  e.preventDefault();
+
+  const checkIn = this.checkIn();
+  const checkOut = this.checkOut();
+
+  if (checkIn && checkIn < this.today) {
+    this.error.set('La llegada no puede ser anterior a hoy.');
+    return;
   }
+
+  if (checkIn && !checkOut) {
+    this.error.set('Elige también la fecha de salida para buscar por fechas.');
+    return;
+  }
+
+  if (!checkIn && checkOut) {
+    this.error.set('Elige también la fecha de llegada.');
+    return;
+  }
+
+  if (checkIn && checkOut && checkOut <= checkIn) {
+    this.error.set('La salida debe ser posterior a la llegada.');
+    return;
+  }
+
+  this.error.set('');
+  this.search.emit({
+    destination: this.destination().trim(),
+    checkIn,
+    checkOut,
+    guests: this.guests(),
+  });
+}
 }

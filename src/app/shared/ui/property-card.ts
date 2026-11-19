@@ -13,23 +13,35 @@ import { Rating } from './rating';
     @let p = property();
     <article class="card">
       <div class="media">
-        <img class="a" [src]="p.images[0]" [alt]="p.title" loading="lazy" (error)="hide($event)" />
-        <img class="b" [src]="p.images[1]" alt="" loading="lazy" (error)="hide($event)" />
+        @if (p.images[0]) {
+          <img class="a" [src]="p.images[0]" [alt]="p.title" loading="lazy" (error)="hide($event)" />
+        } @else {
+          <span class="noimg" aria-hidden="true"><pausa-icon name="home" /></span>
+        }
+        @if (p.images[1]) {
+          <img class="b" [src]="p.images[1]" alt="" loading="lazy" (error)="hide($event)" />
+        }
         @if (p.superhost) { <span class="badge">Anfitrión destacado</span> }
         <pausa-favorite-button class="fav" [propertyId]="p.id" />
       </div>
       <div class="body">
         <div class="row">
-          <p class="loc"><pausa-icon name="map-pin" /> {{ p.city }}, {{ p.region }}</p>
+          <p class="loc"><pausa-icon name="map-pin" /> {{ place() }}</p>
           <pausa-rating [rating]="p.rating" [count]="p.reviewCount" />
         </div>
         <h3>
           <a class="stretch" [routerLink]="['/alojamiento', p.id]" [queryParams]="queryParams()">{{ p.title }}</a>
         </h3>
-        <p class="meta">{{ typeLabel() }} · hasta {{ p.maxGuests }} huéspedes · {{ p.bedrooms }} hab.</p>
-        <ul class="amen">
-          @for (a of topAmenities(); track a.id) { <li><pausa-icon [name]="a.icon" /> {{ a.label }}</li> }
-        </ul>
+        <p class="meta">
+          @if (typeLabel()) { {{ typeLabel() }} · }
+          hasta {{ p.maxGuests }} huéspedes
+          @if (p.bedrooms > 0) { · {{ p.bedrooms }} hab. }
+        </p>
+        @if (topAmenities().length) {
+          <ul class="amen">
+            @for (a of topAmenities(); track a.id) { <li><pausa-icon [name]="a.icon" /> {{ a.label }}</li> }
+          </ul>
+        }
         <p class="price">
           <strong>{{ p.pricePerNight | money }}</strong> <span>/ noche</span>
           @if (nights() > 0) {
@@ -50,6 +62,7 @@ import { Rating } from './rating';
     .media .b { opacity: 0; }
     .card:hover .media .b { opacity: 1; }
     .card:hover .media img { transform: scale(1.04); }
+    .noimg { position: absolute; inset: 0; display: grid; place-items: center; font-size: 2.5rem; color: var(--color-ink-soft); }
     .badge { position: absolute; z-index: 2; top: 0.75rem; left: 0.75rem; padding: 0.3rem 0.7rem; border-radius: var(--radius-pill);
       background: rgb(255 255 255 / 94%); font-size: 0.75rem; font-weight: 600; }
     .fav { position: absolute; z-index: 3; top: 0.6rem; right: 0.6rem; }
@@ -73,7 +86,13 @@ export class PropertyCard {
   readonly nights = input(0);
   readonly queryParams = input<Params | null>(null);
 
-  protected readonly typeLabel = computed(() => PROPERTY_TYPE_LABELS[this.property().type]);
+  protected readonly place = computed(() =>
+    [this.property().city, this.property().region].filter(Boolean).join(', '),
+  );
+  protected readonly typeLabel = computed(() => {
+    const t = this.property().type;
+    return t ? PROPERTY_TYPE_LABELS[t] : '';
+  });
   protected readonly topAmenities = computed(() =>
     this.property().amenities.slice(0, 3).map(amenityById).filter((a): a is Amenity => !!a),
   );

@@ -3,8 +3,9 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { startWith, switchMap } from 'rxjs';
+import { USE_MOCK_API } from '../../core/api/api-config';
 import { PropertyRepository } from '../../data/repositories/property.repository';
-import { PROPERTY_TYPE_LABELS, amenityById } from '../../shared/models/property.model';
+import { PROPERTY_TYPE_LABELS, Property, amenityById } from '../../shared/models/property.model';
 import { MoneyPipe } from '../../shared/pipes/money.pipe';
 import { AvailabilityCalendar, DateRange } from '../../shared/ui/availability-calendar';
 import { EmptyState } from '../../shared/ui/empty-state';
@@ -34,7 +35,7 @@ import { asIso, nightsBetween, parseIso } from '../../shared/utils/dates';
         <header class="title">
           <div>
             <h1>{{ p.title }}</h1>
-            <p class="loc"><pausa-icon name="map-pin" /> {{ p.city }}, {{ p.region }}, {{ p.country }}</p>
+            <p class="loc"><pausa-icon name="map-pin" /> {{ place(p) }}</p>
           </div>
           <div class="title-actions">
             <pausa-rating [rating]="p.rating" [count]="p.reviewCount" />
@@ -42,40 +43,56 @@ import { asIso, nightsBetween, parseIso } from '../../shared/utils/dates';
           </div>
         </header>
 
-        <pausa-image-gallery [images]="p.images" [title]="p.title" />
+        @if (p.images.length) {
+          <pausa-image-gallery [images]="p.images" [title]="p.title" />
+        } @else {
+          <div class="noimg"><pausa-icon name="home" /><span>Este alojamiento aún no tiene fotos</span></div>
+        }
 
         <div class="cols">
           <div class="main">
             <ul class="facts">
-              <li><pausa-icon name="users" /> {{ p.maxGuests }} huéspedes</li>
-              <li><pausa-icon name="home" /> {{ p.bedrooms }} {{ p.bedrooms === 1 ? 'dormitorio' : 'dormitorios' }}</li>
-              <li><pausa-icon name="bed" /> {{ p.beds }} {{ p.beds === 1 ? 'cama' : 'camas' }}</li>
-              <li><pausa-icon name="bath" /> {{ p.bathrooms }} {{ p.bathrooms === 1 ? 'baño' : 'baños' }}</li>
+              <li><pausa-icon name="users" /> {{ p.maxGuests }} {{ p.maxGuests === 1 ? 'huésped' : 'huéspedes' }}</li>
+              @if (p.bedrooms > 0) {
+                <li><pausa-icon name="home" /> {{ p.bedrooms }} {{ p.bedrooms === 1 ? 'dormitorio' : 'dormitorios' }}</li>
+              }
+              @if (p.beds > 0) {
+                <li><pausa-icon name="bed" /> {{ p.beds }} {{ p.beds === 1 ? 'cama' : 'camas' }}</li>
+              }
+              @if (p.bathrooms > 0) {
+                <li><pausa-icon name="bath" /> {{ p.bathrooms }} {{ p.bathrooms === 1 ? 'baño' : 'baños' }}</li>
+              }
             </ul>
 
-            <section class="host">
-              <span class="avatar" aria-hidden="true">{{ p.host.name.charAt(0) }}</span>
-              <div>
-                <strong>{{ typeLabel(p.type) }} · Anfitrión: {{ p.host.name }}</strong>
-                <small>Anfitrión desde {{ p.host.since }}@if (p.superhost) { · Anfitrión destacado }</small>
-              </div>
-            </section>
+            @if (p.host.since > 0) {
+              <section class="host">
+                <span class="avatar" aria-hidden="true">{{ p.host.name.charAt(0) }}</span>
+                <div>
+                  <strong>{{ typeLabel(p.type) ? typeLabel(p.type) + ' · ' : '' }}Anfitrión: {{ p.host.name }}</strong>
+                  <small>Anfitrión desde {{ p.host.since }}@if (p.superhost) { · Anfitrión destacado }</small>
+                </div>
+              </section>
+            }
 
-            <section>
-              <h2>Acerca de este alojamiento</h2>
-              <p class="tagline">{{ p.tagline }}</p>
-              <p>{{ p.description }}</p>
-            </section>
+            @if (p.tagline || p.description) {
+              <section>
+                <h2>Acerca de este alojamiento</h2>
+                @if (p.tagline) { <p class="tagline">{{ p.tagline }}</p> }
+                @if (p.description) { <p>{{ p.description }}</p> }
+              </section>
+            }
 
-            <section>
-              <h2>Lo que ofrece</h2>
-              <ul class="amen">
-                @for (id of p.amenities; track id) {
-                  @let a = amenity(id);
-                  @if (a) { <li><pausa-icon [name]="a.icon" /> {{ a.label }}</li> }
-                }
-              </ul>
-            </section>
+            @if (p.amenities.length) {
+              <section>
+                <h2>Lo que ofrece</h2>
+                <ul class="amen">
+                  @for (id of p.amenities; track id) {
+                    @let a = amenity(id);
+                    @if (a) { <li><pausa-icon [name]="a.icon" /> {{ a.label }}</li> }
+                  }
+                </ul>
+              </section>
+            }
 
             <section id="disponibilidad">
               <h2>Disponibilidad</h2>
@@ -83,14 +100,21 @@ import { asIso, nightsBetween, parseIso } from '../../shared/utils/dates';
                 @if (nights() > 0) { {{ nights() }} {{ nights() === 1 ? 'noche seleccionada' : 'noches seleccionadas' }}. }
                 @else { Elige tu llegada y tu salida en el calendario. }
               </p>
+              @if (!mockData) {
+                <p class="notice">
+                  La disponibilidad en tiempo real aún no está conectada: el calendario no muestra fechas ocupadas.
+                </p>
+              }
               <pausa-availability-calendar [unavailable]="unavailable()" [checkIn]="checkIn()" [checkOut]="checkOut()"
                 (rangeChange)="onRange($event)" />
             </section>
 
-            <section>
-              <h2>Reglas de la casa</h2>
-              <ul class="rules">@for (r of p.rules; track r) { <li><pausa-icon name="check" /> {{ r }}</li> }</ul>
-            </section>
+            @if (p.rules.length) {
+              <section>
+                <h2>Reglas de la casa</h2>
+                <ul class="rules">@for (r of p.rules; track r) { <li><pausa-icon name="check" /> {{ r }}</li> }</ul>
+              </section>
+            }
           </div>
 
           <aside class="booking" id="reserva">
@@ -106,7 +130,9 @@ import { asIso, nightsBetween, parseIso } from '../../shared/utils/dates';
               @if (nights() > 0) {
                 <dl class="breakdown">
                   <div><dt>{{ p.pricePerNight | money }} × {{ nights() }} {{ nights() === 1 ? 'noche' : 'noches' }}</dt><dd>{{ subtotal() | money }}</dd></div>
-                  <div><dt>Tarifa de limpieza</dt><dd>{{ p.cleaningFee | money }}</dd></div>
+                  @if (p.cleaningFee > 0) {
+                    <div><dt>Tarifa de limpieza</dt><dd>{{ p.cleaningFee | money }}</dd></div>
+                  }
                   <div class="total"><dt>Total</dt><dd>{{ total() | money }}</dd></div>
                 </dl>
               }
@@ -141,6 +167,9 @@ import { asIso, nightsBetween, parseIso } from '../../shared/utils/dates';
     h1 { font-size: var(--text-xl); }
     .loc { display: inline-flex; align-items: center; gap: 0.3rem; margin-top: 0.4rem; color: var(--color-ink-soft); font-size: var(--text-sm); }
     .title-actions { display: flex; align-items: center; gap: var(--space-3); }
+    .noimg { display: grid; place-items: center; align-content: center; gap: var(--space-2); height: 17rem; border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, var(--color-surface-alt), var(--color-border)); color: var(--color-ink-soft); text-align: center; font-size: var(--text-sm); }
+    .noimg pausa-icon { font-size: 2.5rem; }
     .cols { display: grid; gap: var(--space-6); margin-top: var(--space-3); }
     .main { display: grid; gap: var(--space-6); min-width: 0; }
     .main section { display: grid; gap: var(--space-3); padding-bottom: var(--space-6); border-bottom: 1px solid var(--color-border); }
@@ -158,6 +187,7 @@ import { asIso, nightsBetween, parseIso } from '../../shared/utils/dates';
     .rules { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; color: var(--color-ink-soft); }
     .rules pausa-icon { color: var(--color-primary); }
     .hint { color: var(--color-ink-soft); font-size: var(--text-sm); }
+    .notice { padding: 0.6rem 0.9rem; border-radius: var(--radius-sm); background: var(--color-surface-alt); color: var(--color-ink-soft); font-size: var(--text-xs); }
     .booking .card { display: grid; gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-md); }
     .price strong { font-family: var(--font-display); font-size: var(--text-xl); }
     .price span, .note { color: var(--color-ink-soft); font-size: var(--text-sm); }
@@ -182,6 +212,7 @@ import { asIso, nightsBetween, parseIso } from '../../shared/utils/dates';
       .cols { grid-template-columns: minmax(0, 1fr) 22rem; gap: var(--space-7); align-items: start; }
       .booking { position: sticky; top: calc(var(--header-height) + 1rem); }
       .mbar { display: none; }
+      .noimg { height: 28rem; }
     }
   `,
 })
@@ -215,8 +246,10 @@ export class PropertyDetailPage {
   protected readonly subtotal = computed(() => (this.property()?.pricePerNight ?? 0) * this.nights());
   protected readonly total = computed(() => this.subtotal() + (this.nights() > 0 ? (this.property()?.cleaningFee ?? 0) : 0));
 
+  protected readonly mockData = USE_MOCK_API;
   protected readonly amenity = amenityById;
-  protected readonly typeLabel = (t: keyof typeof PROPERTY_TYPE_LABELS) => PROPERTY_TYPE_LABELS[t];
+  protected readonly typeLabel = (t: keyof typeof PROPERTY_TYPE_LABELS | null) => (t ? PROPERTY_TYPE_LABELS[t] : '');
+  protected readonly place = (p: Property) => [p.city, p.region, p.country].filter(Boolean).join(', ');
 
   constructor() {
     effect(() => {

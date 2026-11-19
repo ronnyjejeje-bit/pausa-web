@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { EmptyState } from '../../shared/ui/empty-state';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { PropertyRepository } from '../../data/repositories/property.repository';
@@ -12,7 +13,7 @@ import { ToastService } from '../../shared/ui/toast.service';
 
 @Component({
   selector: 'pausa-home',
-  imports: [RouterLink, Icon, PropertyCard, SearchBar, SkeletonCard],
+  imports: [RouterLink, Icon, PropertyCard, SearchBar, SkeletonCard, EmptyState],
   template: `
     <section class="hero">
       <img class="bg" src="https://picsum.photos/seed/pausa-hero/1800/1000" alt="" />
@@ -39,15 +40,21 @@ import { ToastService } from '../../shared/ui/toast.service';
       </div>
     </section>
 
-    <section class="container block">
+      <section class="container block">
       <header class="head">
         <div><h2>Los más valorados</h2><p>Alojamientos que sus huéspedes recomiendan.</p></div>
         <a class="more" routerLink="/buscar">Ver todos <pausa-icon name="arrow-right" /></a>
       </header>
       <div class="cards">
         @if (featured(); as list) {
-          @for (p of list; track p.id; let i = $index) {
-            <pausa-property-card class="reveal" [style.animation-delay.ms]="(i % 8) * 50" [property]="p" />
+          @if (list.length === 0) {
+            <pausa-empty-state style="grid-column: 1 / -1" icon="home"
+              title="Aún no hay alojamientos publicados"
+              message="Cuando se publiquen alojamientos aparecerán aquí." />
+          } @else {
+            @for (p of list; track p.id; let i = $index) {
+              <pausa-property-card class="reveal" [style.animation-delay.ms]="(i % 8) * 50" [property]="p" />
+            }
           }
         } @else {
           @for (n of skeletons; track n) { <pausa-skeleton-card /> }

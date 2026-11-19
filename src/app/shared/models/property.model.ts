@@ -30,7 +30,7 @@ export interface Property {
   title: string;
   tagline: string;
   description: string;
-  type: PropertyType;
+  type: PropertyType | null;
   city: string;
   region: string;
   country: string;

@@ -55,7 +55,7 @@ export class MockPropertyRepository extends PropertyRepository {
       if (p.maxGuests < c.guests) return false;
       if (c.priceMin !== null && p.pricePerNight < c.priceMin) return false;
       if (c.priceMax !== null && p.pricePerNight > c.priceMax) return false;
-      if (c.types.length && !c.types.includes(p.type)) return false;
+      if (c.types.length && (p.type === null || !c.types.includes(p.type))) return false;
       if (!c.amenities.every((a) => p.amenities.includes(a))) return false;
       if (nights.length) {
         const booked = bookedDates(p.id);
